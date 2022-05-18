@@ -30,14 +30,14 @@ typedef struct HLSReceiver_s {
     Playlist_t*           mPlaylist;
     int                   mCurrentSeqNo;
 
-	MediaObject           mCurrentInitMedia;
-	int                   mCurrentInitMediaOffset;
+    MediaObject           mCurrentInitMedia;
+    int                   mCurrentInitMediaOffset;
 
     MediaObject           mCurrentMedia;
     int64_t               mCurrentStartPts;
 
-	MediaObject           mCachedInitSegments[MAX_INIT_SEGMENTS];
-	int                   mCachedInitSegmentCnt;
+    MediaObject           mCachedInitSegments[MAX_INIT_SEGMENTS];
+    int                   mCachedInitSegmentCnt;
 
     OnDonwloadComplete_fn mCompleteCB;
     void*                 mOpaque;
@@ -52,43 +52,43 @@ typedef struct HLSReceiver_s {
 
 static MediaObject find_cached_init_segment(HLSReceiver_t* receiver, Segment_t* initSeg)
 {
-	int ii;
-	for (ii = 0; ii < MAX_INIT_SEGMENTS; ii++)
-	{
-		MediaObject obj = receiver->mCachedInitSegments[ii];
-		if (obj != NULL && MediaObject_GetSegment(obj) == initSeg)
-			return obj;
-	}
+    int ii;
+    for (ii = 0; ii < MAX_INIT_SEGMENTS; ii++)
+    {
+        MediaObject obj = receiver->mCachedInitSegments[ii];
+        if (obj != NULL && MediaObject_GetSegment(obj) == initSeg)
+            return obj;
+    }
 
-	return NULL;
+    return NULL;
 }
 
 static void cache_init_segment(HLSReceiver_t* receiver, Segment_t* initSeg, MediaObject obj)
 {
-	MediaObject cachedObj = NULL;
+    MediaObject cachedObj = NULL;
 
-	cachedObj = receiver->mCachedInitSegments[receiver->mCachedInitSegmentCnt];
-	if (cachedObj != NULL)
-	{
-		MediaObject_Delete(cachedObj);
-		receiver->mCachedInitSegments[receiver->mCachedInitSegmentCnt] = NULL;
-	}
+    cachedObj = receiver->mCachedInitSegments[receiver->mCachedInitSegmentCnt];
+    if (cachedObj != NULL)
+    {
+        MediaObject_Delete(cachedObj);
+        receiver->mCachedInitSegments[receiver->mCachedInitSegmentCnt] = NULL;
+    }
 
-	receiver->mCachedInitSegments[receiver->mCachedInitSegmentCnt++] = obj;
+    receiver->mCachedInitSegments[receiver->mCachedInitSegmentCnt++] = obj;
 }
 
 static void clear_cached_init_segment(HLSReceiver_t* receiver)
 {
-	int ii;
+    int ii;
 
-	for (ii = 0; ii < MAX_INIT_SEGMENTS; ii++)
-	{
-		MediaObject obj = receiver->mCachedInitSegments[ii];
-		MediaObject_Delete(obj);
-		receiver->mCachedInitSegments[ii] = NULL;
-	}
+    for (ii = 0; ii < MAX_INIT_SEGMENTS; ii++)
+    {
+        MediaObject obj = receiver->mCachedInitSegments[ii];
+        MediaObject_Delete(obj);
+        receiver->mCachedInitSegments[ii] = NULL;
+    }
 
-	receiver->mCachedInitSegmentCnt = 0;
+    receiver->mCachedInitSegmentCnt = 0;
 }
 
 static int64_t default_reload_interval(Playlist_t* pls)
@@ -171,17 +171,17 @@ static void* _buffering_task_proc(void* param)
             continue;
         }
 
-		/* Save Init segment to cache */
-		if (seg->mInitSection)
-		{
-			MediaObject initObj = find_cached_init_segment(receiver, seg->mInitSection);
-			if (initObj == NULL)
-			{
-				initObj = MediaObject_Create(seg->mInitSection, &receiver->mIntCB);
-				cache_init_segment(receiver, seg->mInitSection, initObj);
-				MediaObject_StartDownload(initObj);
-			}
-		}
+        /* Save Init segment to cache */
+        if (seg->mInitSection)
+        {
+            MediaObject initObj = find_cached_init_segment(receiver, seg->mInitSection);
+            if (initObj == NULL)
+            {
+                initObj = MediaObject_Create(seg->mInitSection, &receiver->mIntCB);
+                cache_init_segment(receiver, seg->mInitSection, initObj);
+                MediaObject_StartDownload(initObj);
+            }
+        }
 
         obj = MediaObject_Create(seg, &receiver->mIntCB);
         if (!obj)
@@ -318,8 +318,8 @@ int HLS_Receiver_Stop(HLSReceiver receiver)
         MediaObject_Delete(receiver->mCurrentMedia);
         receiver->mCurrentMedia = NULL;
     }
-	receiver->mCurrentInitMedia = NULL;
-	receiver->mCurrentInitMediaOffset = 0;
+    receiver->mCurrentInitMedia = NULL;
+    receiver->mCurrentInitMediaOffset = 0;
     _UNLOCK(receiver);
 
     receiver->mIsRunning = false;
@@ -344,7 +344,7 @@ void HLS_Receiver_Delete(HLSReceiver receiver)
     if (receiver->mM3u8IO)
         avio_close(receiver->mM3u8IO);
 
-	clear_cached_init_segment(receiver);
+    clear_cached_init_segment(receiver);
 
     free(receiver);
 }
@@ -352,7 +352,7 @@ void HLS_Receiver_Delete(HLSReceiver receiver)
 int HLS_Receiver_Read(HLSReceiver receiver, unsigned char* buf, int bufLen)
 {
     int ret = 0;
-	int readSize = 0;
+    int readSize = 0;
 
     if (!receiver)
     {
@@ -362,39 +362,39 @@ int HLS_Receiver_Read(HLSReceiver receiver, unsigned char* buf, int bufLen)
 
     if (!receiver->mCurrentMedia)
     {
-		Segment_t* initSegment = NULL;
+        Segment_t* initSegment = NULL;
         if ((ret = MediaObjectBuffer_Get(receiver->mBuffer, &receiver->mCurrentMedia, -1)) != 0)
         {
             LOG_ERROR("Failed to read ! ret = %d\n", ret);
             return HLS_SESSION_EOF;
         }
-		
-		initSegment = MediaObject_GetSegment(receiver->mCurrentMedia)->mInitSection;
-		if (initSegment != NULL)
-			receiver->mCurrentInitMedia = find_cached_init_segment(receiver, initSegment);
+        
+        initSegment = MediaObject_GetSegment(receiver->mCurrentMedia)->mInitSection;
+        if (initSegment != NULL)
+            receiver->mCurrentInitMedia = find_cached_init_segment(receiver, initSegment);
 
-		receiver->mCurrentInitMediaOffset = 0;
+        receiver->mCurrentInitMediaOffset = 0;
         receiver->mCurrentStartPts = MediaObject_GetSegmentStartPts(receiver->mCurrentMedia);
     }
 
-	if (receiver->mCurrentInitMedia)
-	{
-		ret = MediaObject_Peek(receiver->mCurrentInitMedia, buf, bufLen, receiver->mCurrentInitMediaOffset);
-		if (ret <= 0)
-		{
-			receiver->mCurrentInitMedia = NULL;
-			receiver->mCurrentInitMediaOffset = 0;
-		}
-		else
-		{
-			receiver->mCurrentInitMediaOffset += ret;
-			readSize += ret;
-		}
-	}
+    if (receiver->mCurrentInitMedia)
+    {
+        ret = MediaObject_Peek(receiver->mCurrentInitMedia, buf, bufLen, receiver->mCurrentInitMediaOffset);
+        if (ret <= 0)
+        {
+            receiver->mCurrentInitMedia = NULL;
+            receiver->mCurrentInitMediaOffset = 0;
+        }
+        else
+        {
+            receiver->mCurrentInitMediaOffset += ret;
+            readSize += ret;
+        }
+    }
 
-	if (bufLen - readSize == 0)
-		return readSize;
-		
+    if (bufLen - readSize == 0)
+        return readSize;
+        
     ret = MediaObject_Read(receiver->mCurrentMedia, buf + readSize, bufLen - readSize);
     if (ret <= 0)
     {
@@ -406,17 +406,17 @@ int HLS_Receiver_Read(HLSReceiver receiver, unsigned char* buf, int bufLen)
             obj = receiver->mCurrentMedia;
             receiver->mCurrentMedia = NULL;
             receiver->mCurrentInitMedia = NULL;
-			receiver->mCurrentInitMediaOffset = 0;
+            receiver->mCurrentInitMediaOffset = 0;
         }
         _UNLOCK(receiver);
 
         if (obj)
             MediaObject_Delete(obj);
 
-		return ret;
+        return ret;
     }
 
-	readSize += ret;
+    readSize += ret;
     return readSize;
 }
 

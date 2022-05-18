@@ -25,29 +25,29 @@ extern "C"
 
 static Playlist_t* find_playlist(HLSInfo_t* info, const char* absURL)
 {
-	int ii;
+    int ii;
 
-	for (ii = 0; ii < info->mPlaylistCnt; ii++)
-	{
-		if (strcmp(info->mPlaylists[ii]->mURL, absURL) == 0)
-			return info->mPlaylists[ii];
-	}
+    for (ii = 0; ii < info->mPlaylistCnt; ii++)
+    {
+        if (strcmp(info->mPlaylists[ii]->mURL, absURL) == 0)
+            return info->mPlaylists[ii];
+    }
 
-	return NULL;
+    return NULL;
 }
 
 static Playlist_t* new_playlist(HLSInfo_t* info, const char* url, const char* base)
 {
     char absURL[MAX_URL_SIZE];
     Playlist_t* pls;
-	
-	ff_make_absolute_url(absURL, sizeof(absURL), base, url);
+    
+    ff_make_absolute_url(absURL, sizeof(absURL), base, url);
 
-	pls = find_playlist(info, absURL);
-	if (pls != NULL)
-		return pls;
-	
-	pls = (Playlist_t*)av_mallocz(sizeof(Playlist_t));
+    pls = find_playlist(info, absURL);
+    if (pls != NULL)
+        return pls;
+    
+    pls = (Playlist_t*)av_mallocz(sizeof(Playlist_t));
     if (!pls)
         return NULL;
 
@@ -241,10 +241,10 @@ printf("--- new_rendition : %s\n", rendInfo->mURI);
     else if (!strcmp(rendInfo->mType, "SUBTITLES"))
         eType = AVMEDIA_TYPE_SUBTITLE;
     else if (!strcmp(rendInfo->mType, "CLOSED-CAPTIONS"))
-	{
+    {
         /* CLOSED-CAPTIONS is ignored since we do not support CEA-608 CC in
          * AVC SEI RBSP anyway */
-	}
+    }
 
     if (eType == AVMEDIA_TYPE_UNKNOWN)
     {
@@ -258,10 +258,10 @@ printf("--- new_rendition : %s\n", rendInfo->mURI);
         return NULL;
     }
 
-	if (eType == AVMEDIA_TYPE_SUBTITLE) {
-		LOG_ERROR("Can't support the subtitle(uri: %s)\n", rendInfo->mURI);
-		return NULL;
-	}
+    if (eType == AVMEDIA_TYPE_SUBTITLE) {
+        LOG_ERROR("Can't support the subtitle(uri: %s)\n", rendInfo->mURI);
+        return NULL;
+    }
 
     rend = (Rendition_t*)av_mallocz(sizeof(Rendition_t));
     if (!rend)
@@ -464,9 +464,9 @@ static int parse_playlist(HLSInfo_t* info, const char* url, Playlist_t* pls, con
 
     if (in == NULL)
     {
-		uint8_t *new_url = NULL;
-		AVDictionary *opts = NULL;
-		av_dict_set(&opts, "multiple_requests", "1", 0);
+        uint8_t *new_url = NULL;
+        AVDictionary *opts = NULL;
+        av_dict_set(&opts, "multiple_requests", "1", 0);
 
         ret = avio_open2(&in, url, AVIO_FLAG_READ, int_cb, &opts);
         if (ret < 0)
@@ -477,8 +477,8 @@ static int parse_playlist(HLSInfo_t* info, const char* url, Playlist_t* pls, con
         }
 
         // Save redirect URL 
-	    if (av_opt_get(in, "location", AV_OPT_SEARCH_CHILDREN, &new_url) >= 0)
-			url = av_strdup((const char*)new_url); // TBD Free This
+        if (av_opt_get(in, "location", AV_OPT_SEARCH_CHILDREN, &new_url) >= 0)
+            url = av_strdup((const char*)new_url); // TBD Free This
 
     }
 
@@ -530,7 +530,7 @@ static int parse_playlist(HLSInfo_t* info, const char* url, Playlist_t* pls, con
         else if (av_strstart(line, "#EXT-X-KEY:", &ptr))
         {
             KeyInfo_t keyInfo;
-			memset(&keyInfo, 0x00, sizeof(keyInfo));
+            memset(&keyInfo, 0x00, sizeof(keyInfo));
 
             ff_parse_key_value(ptr, (ff_parse_key_val_cb) handle_key_args, &keyInfo);
             

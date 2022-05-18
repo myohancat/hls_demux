@@ -48,7 +48,7 @@ static const char* gStrSTATE[MAX_STATE] =
 
 typedef struct MediaObject_s {
     char             mURL[MAX_URL_SIZE];
-	Segment_t*       mSegment;
+    Segment_t*       mSegment;
 
     URLContext*      mHttpHandle;
     AVDictionary*    mOpts;
@@ -176,22 +176,22 @@ static int _abort_interrupt_callback(void* opaque)
 #if ENABLE_TRACE_LOG
 static const char* strrchr2(const char* str, char c, int level)
 {
-	const char* p;
-	const char* end = str + strlen(str) - 1;
+    const char* p;
+    const char* end = str + strlen(str) - 1;
 
-	for (p = end -1; p > str; p--)
-	{
-		if (*p == c) level --;
-		if (level == 0) break;
-	}
-	
-	if (p == str)
-		return NULL;
+    for (p = end -1; p > str; p--)
+    {
+        if (*p == c) level --;
+        if (level == 0) break;
+    }
+    
+    if (p == str)
+        return NULL;
 
-	return p;
+    return p;
 }
 
-#define RELURL(url)	  (strrchr2(url, '/', 1) ? strrchr2(url, '/', 1) + 1 : url) 
+#define RELURL(url)      (strrchr2(url, '/', 1) ? strrchr2(url, '/', 1) + 1 : url) 
 #define RELURL2(url)  (strrchr2(url, '/', 2) ? strrchr2(url, '/', 2) + 1 : url) 
 #endif
 
@@ -294,7 +294,7 @@ MediaObject MediaObject_Create(Segment_t* seg, AVIOInterruptCB* int_cb)
         LOG_ERROR("obj malloc is failed !\n");
         goto ERROR;
     }
-	obj->mSegment        = seg;
+    obj->mSegment        = seg;
     obj->mParentIntCB    = int_cb;
     obj->mIntCB.callback = _abort_interrupt_callback;
     obj->mIntCB.opaque   = obj;

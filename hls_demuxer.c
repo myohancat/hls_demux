@@ -78,9 +78,9 @@ typedef struct HLSContext_s {
 
     pthread_mutex_t    mLock;
 
-	int                mProbe; // During probing media, No need to change adaptive.
+    int                mProbe; // During probing media, No need to change adaptive.
  
-	bool               mIsSegmentChanged;
+    bool               mIsSegmentChanged;
 } HLSContext_t;
 
 static void avio_reset2(AVIOContext* io)
@@ -90,7 +90,7 @@ static void avio_reset2(AVIOContext* io)
     io->pos = 0;
     io->error = 0;
     io->seekable = 0;
-	io->is_segment_media = 1;
+    io->is_segment_media = 1;
 }
 
 static void reset_packet(AVPacket* pkt)
@@ -126,20 +126,20 @@ static int hls_switch_variant(HLSContext_t* c, HLSReceiver receiver, Playlist_t*
     int ii, diff;
     int newVariantIndex   = -1;
 
-	if (c->mProbe == 1)
-		return 0;
+    if (c->mProbe == 1)
+        return 0;
 
     for (ii = 0; ii < c->mInfo.mVariantCnt; ii++)
     {
-		if (c->mInfo.mVariants[ii]->mBandwidth < bandwidth)
-		{
-			if (newVariantIndex == -1 || diff > bandwidth - c->mInfo.mVariants[ii]->mBandwidth)
-			{
-				diff = bandwidth - c->mInfo.mVariants[ii]->mBandwidth;
-				newVariantIndex = ii;
-			}
-		}
-	}
+        if (c->mInfo.mVariants[ii]->mBandwidth < bandwidth)
+        {
+            if (newVariantIndex == -1 || diff > bandwidth - c->mInfo.mVariants[ii]->mBandwidth)
+            {
+                diff = bandwidth - c->mInfo.mVariants[ii]->mBandwidth;
+                newVariantIndex = ii;
+            }
+        }
+    }
 
     if (newVariantIndex >= 0 && c->mVariantIndex != newVariantIndex)
     {
@@ -166,9 +166,9 @@ static int IORead(void *opaque, uint8_t *buf, int buf_size)
 
     ret =  HLS_Receiver_Read(session->mReceiver, buf, buf_size);
 #ifdef ENABLE_READ_DATA_DUMP
-	LOG_INFO("--- ret : %d\n", ret);
-	if (ret >= 0)
-		HLS_LOG_Dump(LOG_LEVEL_NONE, buf, buf_size > 32 ? 32:buf_size);
+    LOG_INFO("--- ret : %d\n", ret);
+    if (ret >= 0)
+        HLS_LOG_Dump(LOG_LEVEL_NONE, buf, buf_size > 32 ? 32:buf_size);
 #endif
 
     return ret;
@@ -188,7 +188,7 @@ static SessionContext_t* hls_session_open(AVFormatContext* s, Playlist_t* pls, i
 {
     int ret = 0;
     int ii;
-	ff_const59 AVInputFormat *in_fmt = NULL;
+    ff_const59 AVInputFormat *in_fmt = NULL;
     HLSContext_t* c = (HLSContext_t*)s->priv_data;
     SessionContext_t* session = (SessionContext_t*)av_mallocz(sizeof(SessionContext_t));
     if (!session)
@@ -218,22 +218,22 @@ static SessionContext_t* hls_session_open(AVFormatContext* s, Playlist_t* pls, i
     }
     session->mBufferSize = INITIAL_BUFFER_SIZE;
 
-	session->mContext = avformat_alloc_context();
+    session->mContext = avformat_alloc_context();
 
     ffio_init_context(&session->mIO, session->mBuffer, session->mBufferSize, 0, session, IORead, NULL, NULL); 
     session->mIO.seekable = 0;
-	session->mIO.is_segment_media = 1;
+    session->mIO.is_segment_media = 1;
 
-	ff_copy_whiteblacklists(session->mContext, s);
+    ff_copy_whiteblacklists(session->mContext, s);
 
-	session->mContext->flags = AVFMT_FLAG_CUSTOM_IO;
-	session->mContext->probesize = s->probesize > 0 ? s->probesize : 1024 * 4;
+    session->mContext->flags = AVFMT_FLAG_CUSTOM_IO;
+    session->mContext->probesize = s->probesize > 0 ? s->probesize : 1024 * 4;
     session->mContext->max_analyze_duration = s->max_analyze_duration > 0 ? s->max_analyze_duration : 4 * AV_TIME_BASE;
     ret = av_probe_input_buffer(&session->mIO, &in_fmt, "", NULL, 0, 0);
-	if (ret < 0)
-	{
-		LOG_ERROR("failed to probe input buffer !\n");
-	}
+    if (ret < 0)
+    {
+        LOG_ERROR("failed to probe input buffer !\n");
+    }
 
     session->mSeekTimestamp = AV_NOPTS_VALUE;
     session->mSeekStreamIndex = -1;
@@ -260,7 +260,7 @@ static SessionContext_t* hls_session_open(AVFormatContext* s, Playlist_t* pls, i
         AVStream*     st = avformat_new_stream(s, NULL);
         AVStream*     ist = session->mContext->streams[ii];
 
-		st->id = c->mStreamCnt;
+        st->id = c->mStreamCnt;
         st->time_base.num = g_Rational.num;
         st->time_base.den = g_Rational.den;
         st->r_frame_rate.num = ist->r_frame_rate.num;
@@ -490,13 +490,13 @@ static int hls_read_header(AVFormatContext* s)
 
         var = c->mInfo.mVariants[c->mVariantIndex];
 
-		c->mProbe = 1;
+        c->mProbe = 1;
         for (ii = 0; ii < var->mPlaylistCnt; ii++)
         {
             Playlist_t* playlist = var->mPlaylists[ii];
             hls_session_open(s, playlist, ii == 0);
         }
-		c->mProbe = 0;
+        c->mProbe = 0;
 
 #ifdef ENABLE_DEBUG_ADAPTIVE_INFO
         LOG_ERROR("Set Adaptive - BandWidth: %d\n", var->mBandwidth);
@@ -540,7 +540,7 @@ static int hls_read_packet(AVFormatContext *s, AVPacket *out_pkt)
                         LOG_INFO("AVERROR_EOF - session index : %d\n", ii);
                         if ((ret = hls_session_next_segment(s, session)) == 0)
                         {
-							c->mIsSegmentChanged = true;	
+                            c->mIsSegmentChanged = true;    
                             LOG_TRACE("####### session : %d SegmentPts : %lld\n", ii, session->mStreamInfos[0]->mSegmentStartPts);
                         }
                         else
@@ -571,11 +571,11 @@ static int hls_read_packet(AVFormatContext *s, AVPacket *out_pkt)
                     AVPacket* pkt = &session->mPkt;
                     AVStream* ist = session->mContext->streams[pkt->stream_index];
 
-					if (c->mIsSegmentChanged)
-					{
-						pkt->flags = AV_PKT_FLAG_SEGMENT_CHANGED;
-						c->mIsSegmentChanged = false;
-					}
+                    if (c->mIsSegmentChanged)
+                    {
+                        pkt->flags = AV_PKT_FLAG_SEGMENT_CHANGED;
+                        c->mIsSegmentChanged = false;
+                    }
 
                     if (pkt->pts != AV_NOPTS_VALUE)
                         pkt->pts = av_rescale_q(pkt->pts, ist->time_base, g_Rational);
@@ -662,22 +662,22 @@ EXIT:
 #ifdef ENABLE_SEGMENT_SEEK
 static int64_t get_seek_timestamp_of_main_stream(HLSContext_t* c, int64_t timestamp)
 {
-	int ii;
-	Segment_t* segToSeek = NULL;
-	Variant_t* var = c->mInfo.mVariants[c->mVariantIndex];
-	
-	Playlist_t* pls = var->mPlaylists[0]; // Main Stream
-	segToSeek = pls->mSegments[0];
+    int ii;
+    Segment_t* segToSeek = NULL;
+    Variant_t* var = c->mInfo.mVariants[c->mVariantIndex];
+    
+    Playlist_t* pls = var->mPlaylists[0]; // Main Stream
+    segToSeek = pls->mSegments[0];
 
-	for (ii = 0; ii < pls->mSegmentCnt; ii++)
-	{
-		segToSeek = pls->mSegments[ii];
+    for (ii = 0; ii < pls->mSegmentCnt; ii++)
+    {
+        segToSeek = pls->mSegments[ii];
 
-		if (segToSeek->mStartPts + segToSeek->mDuration > timestamp)
-			break;
-	}
+        if (segToSeek->mStartPts + segToSeek->mDuration > timestamp)
+            break;
+    }
 
-	return segToSeek->mStartPts;
+    return segToSeek->mStartPts;
 }
 #endif
 
@@ -697,7 +697,7 @@ static int hls_read_seek(AVFormatContext *s, int stream_index, int64_t timestamp
     LOG_INFO("stream_index : %d, seek_timestamp : %lld\n", stream_index, seek_timestamp);
 
 #ifdef ENABLE_SEGMENT_SEEK
-	seek_timestamp = get_seek_timestamp_of_main_stream(c, seek_timestamp);
+    seek_timestamp = get_seek_timestamp_of_main_stream(c, seek_timestamp);
 #endif
 
     for (ii = 0; ii < c->mSessionCnt; ii++)
@@ -795,7 +795,7 @@ AVInputFormat ff_hls_demuxer =
     .long_name      = NULL_IF_CONFIG_SMALL("Apple HTTP Live Streaming"),
     .priv_class     = &hls_class,
     .priv_data_size = sizeof(HLSContext_t),
-	.flags          = AVFMT_NOGENSEARCH | AVFMT_TS_DISCONT | AVFMT_NO_BYTE_SEEK,
+    .flags          = AVFMT_NOGENSEARCH | AVFMT_TS_DISCONT | AVFMT_NO_BYTE_SEEK,
     .read_probe     = hls_probe,
     .read_header    = hls_read_header,
     .read_packet    = hls_read_packet,

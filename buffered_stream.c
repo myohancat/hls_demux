@@ -64,13 +64,13 @@ int BufferedStream_Peek(BufferedStream stream, unsigned char* buf, int len, int 
     if (stream->mFront == NULL && !stream->mEOS)
         pthread_cond_wait(&stream->mCondVarFull, &stream->mLock);
 
-	for (block = stream->mFront; block != NULL; block = block->mNext)
-	{
-		if (block->mSize > offset)
-			break;
+    for (block = stream->mFront; block != NULL; block = block->mNext)
+    {
+        if (block->mSize > offset)
+            break;
 
-		offset -= block->mSize;
-	}
+        offset -= block->mSize;
+    }
 
     while (pos < len)
     {
